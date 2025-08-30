@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ckb" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>سیروان دۆلار لیبی</title>
+  <style>
+    body {
+      font-family: "Noto Naskh Arabic", "Segoe UI", sans-serif;
+      background: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      text-align: center;
+      color: #222;
+    }
+    header {
+      background: linear-gradient(135deg, #0066cc, #00aaff);
+      color: white;
+      padding: 20px;
+      border-radius: 0 0 25px 25px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+    .container {
+      margin: 30px auto;
+      max-width: 600px;
+      background: white;
+      padding: 20px;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    label {
+      display: block;
+      text-align: right;
+      margin: 10px 0 5px;
+      font-weight: bold;
+    }
+    input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      margin-bottom: 15px;
+    }
+    .btn {
+      display: block;
+      background: #0066cc;
+      color: white;
+      text-decoration: none;
+      padding: 12px;
+      border-radius: 12px;
+      font-size: 18px;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background: #004999;
+    }
+    .product {
+      border: 1px solid #ddd;
+      border-radius: 15px;
+      padding: 15px;
+      margin: 15px 0;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .product:hover {
+      background: #f0faff;
+      border-color: #00aaff;
+    }
+    footer {
+      margin: 30px auto;
+      font-size: 14px;
+      color: #666;
+    }
+  </style>
+  <script>
+    function registerUser(e){
+      e.preventDefault();
+      const name = document.getElementById('name').value;
+      const whatsapp = document.getElementById('whatsapp').value;
+      const snapchat = document.getElementById('snapchat').value;
+      const tiktok = document.getElementById('tiktok').value;
+
+      if(!name || !whatsapp){
+        alert("تکایە ناو و ژمارە واتساپ پڕبکەرەوە");
+        return;
+      }
+
+      const msg = `کڕیارێکی نوێ تۆماربوو\\nناو: ${name}\\nواتساپ: ${whatsapp}\\nسناپ: ${snapchat}\\nتیکتۆک: ${tiktok}`;
+      window.open(`https://wa.me/9647869714956?text=${encodeURIComponent(msg)}`);
+      alert("سوپاس بۆ تۆمارکردن");
+    }
+
+    function selectProduct(desc){
+      document.getElementById('order-box').innerHTML = `
+        <h2>سوپاس بۆ داواکردن</h2>
+        <p>تکایە بڕی پارەی پێویست بنێرە بۆ ئەدمین لەڕێگای FIB یان کارتی مۆبایل</p>
+        <p><strong>${desc}</strong></p>
+        <a class="btn" href="https://wa.me/9647869714956?text=${encodeURIComponent('داوا: '+desc)}">ناردن بۆ واتساپ</a>
+      `;
+    }
+  </script>
+</head>
+<body>
+  <header>
+    <h1>سیروان دۆلار لیبی</h1>
+  </header>
+
+  <div class="container">
+    <h2>تۆمارکردن</h2>
+    <form onsubmit="registerUser(event)">
+      <label>ناو</label>
+      <input type="text" id="name" required>
+
+      <label>ژمارە واتساپ</label>
+      <input type="text" id="whatsapp" placeholder="مثال: 7701234567" required>
+
+      <label>یوزەرنەیمی سناپ چات</label>
+      <input type="text" id="snapchat">
+
+      <label>ناوی تیکتۆک</label>
+      <input type="text" id="tiktok">
+
+      <button class="btn" type="submit">تۆمارکردن</button>
+    </form>
+  </div>
+
+  <div class="container">
+    <h2>کڕینی دۆلار و دینار</h2>
+
+    <div class="product" onclick="selectProduct('25 گەڵا - 500,000 دینار')">
+      <h3>25 گەڵا</h3>
+      <p>500,000 دینار</p>
+    </div>
+
+    <div class="product" onclick="selectProduct('50 گەڵا - 900,000 دینار')">
+      <h3>50 گەڵا</h3>
+      <p>900,000 دینار</p>
+    </div>
+
+    <div class="product" onclick="selectProduct('3 ملیۆن دینار - 500,000 دینار')">
+      <h3>3 ملیۆن دینار</h3>
+      <p>500,000 دینار</p>
+    </div>
+
+    <div id="order-box"></div>
+  </div>
+
+  <footer>
+    سیروان دۆلار
+  </footer>
+</body>
+  </html>
