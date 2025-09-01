@@ -1,146 +1,186 @@
-<!DOCTYPE html><html lang="ckb" dir="rtl">
+<!--
+Filename: serwan-dollar-shop.html
+Description: Single-file RTL Kurdish shopping page (HTML/CSS/JS) + example Node.js server (below) to forward registrations/orders to Telegram bot.
+Notes:
+ - For security, the Telegram bot token is used only on the server (server.js). Do NOT expose the token in client-side code.
+ - The user provided token and admin id which are shown as placeholders in server.js; replace with actual values or set as environment variables.
+ - To run server: `node server.js` (requires node >= 14 and package 'node-fetch' or use built-in fetch in modern Node). Install dependencies: `npm init -y && npm install express body-parser node-fetch`.
+--><!doctype html>
+
+<html lang="ku" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>سیروان دۆلار لیبی</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>سیروان دۆلار - شۆپینگ</title>
   <style>
-    body {
-      font-family: "Noto Naskh Arabic", "Segoe UI", sans-serif;
-      background: url('https://i.ibb.co/5KW8Tjz/dollar-bg.jpg') no-repeat center center fixed;
-      background-size: cover;
-      margin: 0;
-      padding: 0;
-      text-align: center;
-      color: #222;
+    /* Simple Kurdish-friendly styling (RTL) */
+    @font-face{
+      font-family: 'KurdishUI';
+      src: local('Noto Naskh Arabic'), local('Noto Sans Arabic');
     }
-    header {
-      background: rgba(0, 102, 204, 0.9);
-      color: white;
-      padding: 20px;
-      border-radius: 0 0 25px 25px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    :root{
+      --bg:#f6fbff; --card:#ffffff; --accent:#0b63d6; --muted:#6b7280;
+      font-family: 'KurdishUI', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
     }
-    h1 {
-      margin: 0;
-      font-size: 28px;
-    }
-    .container {
-      margin: 30px auto;
-      max-width: 600px;
-      background: rgba(255,255,255,0.95);
-      padding: 20px;
-      border-radius: 20px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-    }
-    label {
-      display: block;
-      text-align: right;
-      margin: 10px 0 5px;
-      font-weight: bold;
-    }
-    input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      margin-bottom: 15px;
-    }
-    .btn {
-      display: block;
-      background: #0066cc;
-      color: white;
-      text-decoration: none;
-      padding: 12px;
-      border-radius: 12px;
-      font-size: 18px;
-      margin-top: 10px;
-      transition: background 0.3s;
-    }
-    .btn:hover {
-      background: #004999;
-    }
-    .product {
-      border: 1px solid #ddd;
-      border-radius: 15px;
-      padding: 15px;
-      margin: 15px 0;
-      cursor: pointer;
-      transition: 0.3s;
-      background: white;
-    }
-    .product:hover {
-      background: #f0faff;
-      border-color: #00aaff;
-    }
-    footer {
-      margin: 30px auto;
-      font-size: 14px;
-      color: #fff;
-      background: rgba(0,0,0,0.5);
-      padding: 10px;
-      border-radius: 12px;
-    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:#0f172a;line-height:1.45}
+    header{background:linear-gradient(90deg,var(--accent),#2b9bff);color:#fff;padding:28px 20px;text-align:center}
+    header h1{margin:0;font-size:1.6rem}
+    .container{max-width:900px;margin:22px auto;padding:16px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(2,6,23,0.08);padding:18px}
+    label{display:block;margin-bottom:6px;font-weight:600}
+    input[type=text],input[type=tel],select{width:100%;padding:10px;border-radius:8px;border:1px solid #e6eef8;margin-bottom:12px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .price-list{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+    .price-item{flex:0 0 auto;padding:10px 14px;border-radius:10px;border:1px solid #e6eef8;cursor:pointer}
+    .price-item.selected{background:#eef7ff;border-color:var(--accent);box-shadow:0 6px 18px rgba(11,99,214,0.08)}
+    button{background:var(--accent);color:#fff;padding:10px 14px;border-radius:10px;border:0;cursor:pointer}
+    footer{margin-top:14px;text-align:center;color:var(--muted);font-size:0.95rem}
+    .small{font-size:0.9rem;color:var(--muted)}
+    .result{padding:10px;border-radius:8px;margin-top:10px}
+    .success{background:#ecfdf5;border:1px solid #bbf7d0;color:#065f46}
+    .warn{background:#fff7ed;border:1px solid #ffedd5;color:#92400e}
   </style>
-  <script>
-    function registerUser(e){
-      e.preventDefault();
-      const name = document.getElementById('name').value;
-      const whatsapp = document.getElementById('whatsapp').value;if(!name || !whatsapp){
-    alert("تکایە ناو و ژمارە واتساپ پڕبکەرەوە");
-    return;
-  }
-
-  const msg = `کڕیارێکی نوێ تۆماربوو\nناو: ${name}\nواتساپ: ${whatsapp}`;
-  window.open(`https://wa.me/9647869714956?text=${encodeURIComponent(msg)}`);
-
-  document.getElementById('register-box').style.display = 'none';
-  document.getElementById('shop-box').style.display = 'block';
-}
-
-function selectProduct(desc, name){
-  document.getElementById('order-box').innerHTML = `
-    <h2>سوپاس بۆ داواکردن</h2>
-    <p>تکایە بڕی پارەی پێویست بنێرە بۆ ئەدمین لەڕێگای FIB یان کارتی مۆبایل</p>
-    <p><strong>${desc}</strong></p>
-    <a class="btn" href="https://wa.me/9647869714956?text=${encodeURIComponent('داوا بۆ '+name+' : '+desc)}">ناردن بۆ واتساپ</a>
-  `;
-}
-
-  </script>
 </head>
 <body>
   <header>
-    <h1>سیروان دۆلار لیبی</h1>
-  </header>  <div class="container" id="register-box">
-    <h2>تۆمارکردن</h2>
-    <form onsubmit="registerUser(event)">
-      <label>ناو</label>
-      <input type="text" id="name" required><label>ژمارە واتساپ</label>
-  <input type="text" id="whatsapp" placeholder="مثال: 7701234567" required>
+    <h1>سیروان دۆلار - کڕینی دۆلار و دینار</h1>
+    <div class="small">پەیوەندیکردن بە واتسئاپ/سناپ/تیکتۆک بۆ تۆمار</div>
+  </header>  <main class="container">
+    <div class="card">
+      <h2>تۆمارکردن</h2>
+      <p class="small">تکایە یەکێک پێشکەش بکە — ژمارەی واتسئاپ یان یوزەرنەیم سناپ/تیکتۆک</p>
+      <form id="registerForm">
+        <label>ناو</label>
+        <input type="text" id="name" placeholder="ناوی تەواو" required />
+        <label>ژمارەی واتسئاپ (یا)</label>
+        <input type="tel" id="whatsapp" placeholder="+9647xxxxxxxx" />
+        <label>یوزەرنەیم سناپ/تیکتۆک</label>
+        <input type="text" id="social" placeholder="username (بیوانە بە بێ @)" />
+        <div style="margin-top:8px"><button id="registerBtn" type="button">تۆمار کردن</button></div>
+      </form>
+      <div id="regResult" class="result" style="display:none"></div>
+    </div><div style="height:14px"></div>
 
-  <button class="btn" type="submit">تۆمارکردن</button>
-</form>
+<div class="card">
+  <h2>هەڵبژاردنی پاکەت / نرخ</h2>
+  <div class="price-list" id="prices">
+    <div class="price-item" data-id="25" data-price="500000">25 گەڵا — ٥٠٠,٠٠٠ دینار</div>
+    <div class="price-item" data-id="50" data-price="900000">50 گەڵا — ٩٠٠,٠٠٠ دینار</div>
+    <div class="price-item" data-id="3m" data-price="500000">3,000,000 دینار — ٥٠٠,٠٠٠ دینار</div>
+  </div>
 
-  </div>  <div class="container" id="shop-box" style="display:none;">
-    <h2>کڕینی دۆلار و دینار</h2><div class="product" onclick="selectProduct('25 گەڵا - 500,000 دینار', document.getElementById('name').value)">
-  <h3>25 گەڵا</h3>
-  <p>500,000 دینار</p>
+  <label>هەڵبژاردن</label>
+  <select id="method">
+    <option value="fiv">فێب (FIB)</option>
+    <option value="card">کارتى مۆبایل</option>
+  </select>
+
+  <div style="margin-top:12px">
+    <button id="orderBtn" type="button">داواکردن</button>
+  </div>
+
+  <div id="orderResult" class="result" style="display:none"></div>
+
 </div>
 
-<div class="product" onclick="selectProduct('50 گەڵا - 900,000 دینار', document.getElementById('name').value)">
-  <h3>50 گەڵا</h3>
-  <p>900,000 دینار</p>
-</div>
+<footer>
+  <p class="small">نووسراوی: سیروان دۆلار — هەموو مافی وەسفەکان پارێزراون</p>
+</footer>
 
-<div class="product" onclick="selectProduct('3 ملیۆن دینار - 500,000 دینار', document.getElementById('name').value)">
-  <h3>3 ملیۆن دینار</h3>
-  <p>500,000 دینار</p>
-</div>
+  </main>  <script>
+    // Client-side logic: selects, register, and order. Communicates with server endpoints.
+    const pricesEl = document.getElementById('prices');
+    let selected = null;
+    pricesEl.addEventListener('click', e => {
+      const item = e.target.closest('.price-item');
+      if (!item) return;
+      document.querySelectorAll('.price-item').forEach(i=>i.classList.remove('selected'));
+      item.classList.add('selected');
+      selected = {id: item.dataset.id, price: item.dataset.price, label: item.textContent.trim()};
+    });
 
-<div id="order-box"></div>
+    // Register
+    document.getElementById('registerBtn').addEventListener('click', async ()=>{
+      const name = document.getElementById('name').value.trim();
+      const whatsapp = document.getElementById('whatsapp').value.trim();
+      const social = document.getElementById('social').value.trim();
+      if(!name){showReg('تکایە ناو بنووسە','warn');return}
+      const payload = {name, whatsapp, social};
+      showReg('...', 'warn');
+      try{
+        const res = await fetch('/api/register', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+        const j = await res.json();
+        if(res.ok){showReg(j.message||'تۆمار بە سەرکەوتوویی', 'success')}else{showReg(j.error||'هەڵەیەک رویدا', 'warn')}
+      }catch(err){showReg('هەڵە لە پەیوەندیدا — تکایە دواتر هەوڵبدەر','warn')}
+    });
 
-  </div>  <footer>
-    سیروان دۆلار
-  </footer>
-</body>
+    function showReg(txt, cls){const el=document.getElementById('regResult');el.style.display='block';el.className='result '+(cls==='success'? 'success':'warn');el.textContent=txt}
+
+    // Order
+    document.getElementById('orderBtn').addEventListener('click', async ()=>{
+      if(!selected){showOrder('تکایە پاکەتێک هەڵبژێرە','warn');return}
+      const method = document.getElementById('method').value;
+      const payload = {selection:selected, method};
+      showOrder('...','warn');
+      try{
+        const res = await fetch('/api/order', {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(payload)});
+        const j = await res.json();
+        if(res.ok){
+          // show final screen message
+          showOrder('سوپاس بۆ داوا کردن — تکایە بڕی پارەی پێویست بنێرە بۆ ئەدمین لە ڕێگای FIB یان کارت مۆبایل.','success');
+        } else showOrder(j.error||'هەڵەیەک رویدا','warn')
+      }catch(err){showOrder('هەڵە لە پەیوەندیدا — تکایە دواتر هەوڵبدەر','warn')}
+    });
+
+    function showOrder(txt, cls){const el=document.getElementById('orderResult');el.style.display='block';el.className='result '+(cls==='success'? 'success':'warn');el.textContent=txt}
+  </script>  <!--
+    Below: example Node.js server (server.js). Save as server.js and run with node.
+    It receives /api/register and /api/order and forwards messages to Telegram using the bot token and admin id.
+  -->  <!--
+  ---- server.js (Example) ----
+  const express = require('express');
+  const bodyParser = require('body-parser');
+  const fetch = require('node-fetch'); // or global fetch on modern node
+
+  const app = express();
+  app.use(bodyParser.json());
+
+  // SECURITY: store sensitive values in environment variables, not in code.
+  const TELEGRAM_TOKEN = process.env.TELEGRAM_TOKEN || '8276099023:AAFDpteLag3sID7u76kMqfM89Pw5GSHOKr0';
+  const ADMIN_ID = process.env.ADMIN_ID || '8119964397';
+  const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_TOKEN}`;
+
+  function sendTelegram(text){
+    return fetch(`${TELEGRAM_API}/sendMessage`,{
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body:JSON.stringify({chat_id:ADMIN_ID, text, parse_mode:'HTML'})
+    }).then(r=>r.json());
+  }
+
+  app.post('/api/register', async (req,res)=>{
+    const {name, whatsapp, social} = req.body;
+    if(!name) return res.status(400).json({error:'name required'});
+    const msg = `<b>تۆمار نوێ</b>\nناو: ${name}\nواتسApp: ${whatsapp||'نیە'}\nسناپ/تیکتۆک: ${social||'نیە'}`;
+    try{
+      await sendTelegram(msg);
+      return res.json({message:'تۆمار بە سەرکەوتوویی نێردرا'});
+    }catch(e){console.error(e);return res.status(500).json({error:'نەتوانیت پەیام بنێریت'})}
+  });
+
+  app.post('/api/order', async (req,res)=>{
+    const {selection, method} = req.body;
+    if(!selection) return res.status(400).json({error:'selection required'});
+    const msg = `<b>داواکاری نوێ</b>\nپاکەت: ${selection.label}\nنرخ (دینار): ${selection.price}\nڕێگە: ${method}`;
+    try{
+      await sendTelegram(msg);
+      return res.json({message:'داواکاری نێردرا'});
+    }catch(e){console.error(e);return res.status(500).json({error:'نەتوانیت پەیام بنێریت'})}
+  });
+
+  const port = process.env.PORT || 3000;
+  app.listen(port, ()=>console.log('Server running on',port));
+  ---- end server.js ----
+  --></body>
 </html>
